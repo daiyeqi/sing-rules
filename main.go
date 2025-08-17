@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -60,10 +60,10 @@ func get(downloadURL *string) ([]byte, error) {
 
 func download(release *github.RepositoryRelease) ([]byte, error) {
 	geositeAsset := common.Find(release.Assets, func(it *github.ReleaseAsset) bool {
-		return *it.Name == "dlc.dat"
+		return *it.Name == "geosite.dat"
 	})
 	geositeChecksumAsset := common.Find(release.Assets, func(it *github.ReleaseAsset) bool {
-		return *it.Name == "dlc.dat.sha256sum"
+		return *it.Name == "geosite.dat.sha256sum"
 	})
 	if geositeAsset == nil {
 		return nil, E.New("geosite asset not found in upstream release ", release.Name)
@@ -295,7 +295,7 @@ func mergeTags(data map[string][]geosite.Item) {
 	println("merged cn categories: " + strings.Join(cnCodeList, ","))
 }
 
-func generate(release *github.RepositoryRelease, output string, cnOutput string, ruleSetOutput string, ruleSetUnstableOutput string) error {
+func generate(release *github.RepositoryRelease, ruleSetOutput string) error {
 	vData, err := download(release)
 	if err != nil {
 		return err
@@ -306,47 +306,8 @@ func generate(release *github.RepositoryRelease, output string, cnOutput string,
 	}
 	filterTags(domainMap)
 	mergeTags(domainMap)
-	outputPath, _ := filepath.Abs(output)
-	os.Stderr.WriteString("write " + outputPath + "\n")
-	outputFile, err := os.Create(output)
-	if err != nil {
-		return err
-	}
-	defer outputFile.Close()
-	writer := bufio.NewWriter(outputFile)
-	err = geosite.Write(writer, domainMap)
-	if err != nil {
-		return err
-	}
-	err = writer.Flush()
-	if err != nil {
-		return err
-	}
-	cnCodes := []string{
-		"geolocation-cn",
-	}
-	cnDomainMap := make(map[string][]geosite.Item)
-	for _, cnCode := range cnCodes {
-		cnDomainMap[cnCode] = domainMap[cnCode]
-	}
-	cnOutputFile, err := os.Create(cnOutput)
-	if err != nil {
-		return err
-	}
-	defer cnOutputFile.Close()
-	writer.Reset(cnOutputFile)
-	err = geosite.Write(writer, cnDomainMap)
-	if err != nil {
-		return err
-	}
-	err = writer.Flush()
-	if err != nil {
-		return err
-	}
 	os.RemoveAll(ruleSetOutput)
-	os.RemoveAll(ruleSetUnstableOutput)
 	err = os.MkdirAll(ruleSetOutput, 0o755)
-	err = os.MkdirAll(ruleSetUnstableOutput, 0o755)
 	if err != nil {
 		return err
 	}
@@ -365,11 +326,8 @@ func generate(release *github.RepositoryRelease, output string, cnOutput string,
 			},
 		}
 		srsPath, _ := filepath.Abs(filepath.Join(ruleSetOutput, "geosite-"+code+".srs"))
-		unstableSRSPath, _ := filepath.Abs(filepath.Join(ruleSetUnstableOutput, "geosite-"+code+".srs"))
-		// os.Stderr.WriteString("write " + srsPath + "\n")
 		var (
 			outputRuleSet         *os.File
-			outputRuleSetUnstable *os.File
 		)
 		outputRuleSet, err = os.Create(srsPath)
 		if err != nil {
@@ -380,24 +338,29 @@ func generate(release *github.RepositoryRelease, output string, cnOutput string,
 		if err != nil {
 			return err
 		}
-		outputRuleSetUnstable, err = os.Create(unstableSRSPath)
-		if err != nil {
-			return err
-		}
-		err = srs.Write(outputRuleSetUnstable, plainRuleSet, true)
-		outputRuleSetUnstable.Close()
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
 
-func setActionOutput(name string, content string) {
-	os.Stdout.WriteString("::set-output name=" + name + "::" + content + "\n")
+func setActionOutput(name string, content string) error {
+	outputFilePath, found := os.LookupEnv("GITHUB_OUTPUT")
+	if !found {
+		fmt.Println("GITHUB_OUTPUT environment variable not set. Skipping output.")
+		return nil
+	}
+	file, err := os.OpenFile(outputFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open output file: %w", err)
+	}
+	defer file.Close()
+	if _, err := file.WriteString(fmt.Sprintf("%s=%s\n", name, content)); err != nil {
+		return fmt.Errorf("failed to write to output file: %w", err)
+	}
+	return nil
+	// os.Stdout.WriteString("::set-output name=" + name + "::" + content + "\n")
 }
 
-func release(source string, destination string, output string, cnOutput string, ruleSetOutput string, ruleSetOutputUnstable string) error {
+func release(source string, destination string, ruleSetOutput string) error {
 	sourceRelease, err := fetch(source)
 	if err != nil {
 		return err
@@ -412,7 +375,7 @@ func release(source string, destination string, output string, cnOutput string, 
 			return nil
 		}
 	}
-	err = generate(sourceRelease, output, cnOutput, ruleSetOutput, ruleSetOutputUnstable)
+	err = generate(sourceRelease, ruleSetOutput)
 	if err != nil {
 		return err
 	}
@@ -422,12 +385,9 @@ func release(source string, destination string, output string, cnOutput string, 
 
 func main() {
 	err := release(
-		"v2fly/domain-list-community",
-		"sagernet/sing-geosite",
-		"geosite.db",
-		"geosite-cn.db",
+		"daiyeqi/v2ray-rules-dat",
+		"daiyeqi/sing-rules",
 		"rule-set",
-		"rule-set-unstable",
 	)
 	if err != nil {
 		log.Fatal(err)

@@ -2,14 +2,14 @@ name: Release
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "30 22 * * *"
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Setup Go
@@ -20,34 +20,27 @@ jobs:
         id: build
         run: |
           go run -v .
+      - name: Move and zip files and generate sha256 hash
+        run: |
+          $(cd rule-set && tar --sort=name --mtime='1970-01-01 00:00:00Z' -cf ../rules.tar *.srs)
+          sha256sum rules.tar > rules.tar.sha256sum
       - name: Release rule sets
         if: steps.build.outputs.skip != 'true'
-        run: .github/release-rule-set.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Generate sha256 hash
-        if: steps.build.outputs.skip != 'true'
         run: |
-          sha256sum geosite.db > geosite.db.sha256sum
-          sha256sum geosite-cn.db > geosite-cn.db.sha256sum
-      - name: Release release branch
-        if: steps.build.outputs.skip != 'true'
-        run: .github/release-branch.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: dev-drprasad/delete-older-releases@v0.3.2
-        if: steps.build.outputs.skip != 'true'
-        with:
-          keep_latest: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          cd rule-set || exit 1
+          git init
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b release
+          git add .
+          git commit -m "${{ steps.build.outputs.tag }}"
+          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git push -f -u origin release
       - name: Release geosite
         if: steps.build.outputs.skip != 'true'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.build.outputs.tag }}
           files: |
-            geosite.db
-            geosite.db.sha256sum
-            geosite-cn.db
-            geosite-cn.db.sha256sum
+            rules.tar
+            rules.tar.sha256sum
