@@ -333,7 +333,7 @@ func generate(release *github.RepositoryRelease, ruleSetOutput string) error {
 		if err != nil {
 			return err
 		}
-		err = srs.Write(outputRuleSet, plainRuleSet, false)
+		err = srs.Write(outputRuleSet, plainRuleSet, 2)
 		outputRuleSet.Close()
 		if err != nil {
 			return err
