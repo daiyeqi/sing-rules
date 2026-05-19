@@ -23,8 +23,8 @@ github.com/sagernet/sing-box v1.13.12 h1:U7znhM2VRq76ZdN4X5eRKdaUxHJNHMGKpo2csKq
 github.com/sagernet/sing-box v1.13.12/go.mod h1:dgvcaNmNZTdeiDbnpQ+EghpE+KPR+8yKtfoVEhUi3jw=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
-github.com/v2fly/v2ray-core/v5 v5.50.0 h1:pZuf0m/Ygfzf5IHiKugpdraPXJa6JlS0poqSntk+JiI=
-github.com/v2fly/v2ray-core/v5 v5.50.0/go.mod h1:XTyuhOhTO6JNykGfWnB8c37oLaSYB4N0xl90x6aSd8s=
+github.com/v2fly/v2ray-core/v5 v5.51.2 h1:YRDJlMhlCutNv6sHakrpP1LMY/FZZmexT4FK10QSVYw=
+github.com/v2fly/v2ray-core/v5 v5.51.2/go.mod h1:XTyuhOhTO6JNykGfWnB8c37oLaSYB4N0xl90x6aSd8s=
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBseWJUpBw5I82+2U4M=
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
 golang.org/x/crypto v0.51.0 h1:IBPXwPfKxY7cWQZ38ZCIRPI50YLeevDLlLnyC5wRGTI=
