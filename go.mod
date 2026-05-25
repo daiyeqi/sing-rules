@@ -6,7 +6,7 @@ require (
 	github.com/google/go-github/v45 v45.2.0
 	github.com/sagernet/sing v0.8.10
 	github.com/sagernet/sing-box v1.13.12
-	github.com/v2fly/v2ray-core/v5 v5.50.0
+	github.com/v2fly/v2ray-core/v5 v5.51.2
 	google.golang.org/protobuf v1.36.11
 )
 
