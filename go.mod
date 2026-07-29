@@ -4,8 +4,8 @@ go 1.25.5
 
 require (
 	github.com/google/go-github/v45 v45.2.0
-	github.com/sagernet/sing v0.8.11
-	github.com/sagernet/sing-box v1.13.14
+	github.com/sagernet/sing v0.8.12-0.20260726145744-ef2df370afca
+	github.com/sagernet/sing-box v1.13.15
 	github.com/v2fly/v2ray-core/v5 v5.52.0
 	google.golang.org/protobuf v1.36.11
 )
