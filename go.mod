@@ -7,7 +7,7 @@ require (
 	github.com/sagernet/sing v0.8.14
 	github.com/sagernet/sing-box v1.13.14
 	github.com/v2fly/v2ray-core/v5 v5.52.0
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
